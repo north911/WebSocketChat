@@ -14,38 +14,41 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-
-@ServerEndpoint(value = "/chat/{username}", decoders = MessageDecoder.class, encoders = MessageEncoder.class)
+@ServerEndpoint(value = "/chat/{username}/{userrole}", decoders = MessageDecoder.class, encoders = MessageEncoder.class)
 public class ChatEndpoint {
+
+    private ChatUtils chatUtils = new ChatUtils();
     private Session session;
-    private static final Set<ChatEndpoint> chatEndpoints = new CopyOnWriteArraySet<>();
-    private static HashMap<String, String> users = new HashMap<>();
+    private ChatUser chatUser;
+    //private static final Set<ChatEndpoint> SERVER_ENDPOINTS = new CopyOnWriteArraySet<>();
+    private static HashMap<String, ChatUser> users = new HashMap<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) throws IOException, EncodeException {
+    public void onOpen(Session session, @PathParam("username") String username, @PathParam("userrole") String userrole) throws IOException, EncodeException {
 
         this.session = session;
-        chatEndpoints.add(this);
-        users.put(session.getId(), username);
+        //SERVER_ENDPOINTS.add(this);
+        chatUser = chatUtils.registreChatUser(username, userrole, session);
+        users.put(session.getId(), chatUser);
         Message message = new Message();
         message.setFrom(username);
         message.setContent("Connected!");
-        broadcast(message);
+        sendMessage(message, chatUser);
     }
 
     @OnMessage
     public void onMessage(Session session, Message message) throws IOException, EncodeException {
-        message.setFrom(users.get(session.getId()));
-        broadcast(message);
+        message.setFrom(users.get(session.getId()).getName());
+        sendMessage(message,chatUser);
     }
 
     @OnClose
     public void onClose(Session session) throws IOException, EncodeException {
-        chatEndpoints.remove(this);
+       // SERVER_ENDPOINTS.remove(this);
         Message message = new Message();
-        message.setFrom(users.get(session.getId()));
+        message.setFrom(users.get(session.getId()).getName());
         message.setContent("Disconnected!");
-        broadcast(message);
+        sendMessage(message,users.get(session.getId()));
     }
 
     @OnError
@@ -53,17 +56,15 @@ public class ChatEndpoint {
         // Do error handling here
     }
 
-    private static void broadcast(Message message) throws IOException, EncodeException {
-        chatEndpoints.forEach(endpoint -> {
-            synchronized (endpoint) {
-                try {
-                    endpoint.session.getBasicRemote()
-                            .sendObject(message);
-                } catch (IOException | EncodeException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    private void sendMessage(Message message, ChatUser chatUser) throws IOException, EncodeException{
+        chatUser.getSession().getBasicRemote().sendObject(message);
+        if(chatUser.getUserToSession()==null && chatUser.getRole().equals("client")) {
+            ChatUser agent = chatUtils.findAvailableAgent(users);
+            agent.getSession().getBasicRemote().sendObject(message);
+            if(agent!=null)
+                agent.getSession().getBasicRemote().sendObject(message);
+        }
+
     }
 
 }

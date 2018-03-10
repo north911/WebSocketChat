@@ -2,6 +2,7 @@ package clientWeb.ConsoleClient;
 
 import com.google.gson.JsonObject;
 import org.java_websocket.client.WebSocketClient;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,11 +12,16 @@ public class ConsoleClientUtil {
 
     public WebSocketClient registerClient(){
         WebSocketClient client = null;
+        String role = null;
         System.out.println("What's your name?");
         Scanner scanner = new Scanner(System.in);
         String user = scanner.nextLine();
+        System.out.println("What's your role(client or agent)?");
+        while(!"agent".equals(role) && !"client".equals(role)){
+        role = scanner.nextLine();
+        }
         try {
-            client = new EmptyClient(new URI("ws://localhost:8080/chat/"+user));
+            client = new ConsoleClientEndPoint(new URI("ws://localhost:8080/chat/"+user + "/"+role));
         }
         catch (URISyntaxException e){
             e.printStackTrace();
@@ -35,6 +41,15 @@ public class ConsoleClientUtil {
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("content", message);
             client.send(jsonObject.toString());
-        } while (!message.equalsIgnoreCase("/quit"));
+        } while (!message.equalsIgnoreCase("/exit"));
+        client.close();
+    }
+
+    public String jsonParser(String message){
+        String msg;
+        JSONObject jsonObject = new JSONObject(message);
+        msg = jsonObject.getString("from") + ":" + jsonObject.getString("content");
+        return msg;
+
     }
 }

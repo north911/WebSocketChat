@@ -1,31 +1,29 @@
 package clientWeb.ConsoleClient;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.util.Scanner;
-import com.google.gson.JsonObject;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
 
-public class EmptyClient extends WebSocketClient {
+
+public class ConsoleClientEndPoint extends WebSocketClient {
 
     private static ConsoleClientUtil consoleClientUtil = new ConsoleClientUtil();
 
-    public EmptyClient(URI serverUri, Draft draft) {
+    public ConsoleClientEndPoint(URI serverUri, Draft draft) {
         super(serverUri, draft);
     }
 
-    public EmptyClient(URI serverURI) {
+    public ConsoleClientEndPoint(URI serverURI) {
         super(serverURI);
     }
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("username","user123");
-        send(jsonObject.toString());
         System.out.println("new connection opened");
     }
 
@@ -36,8 +34,9 @@ public class EmptyClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        System.out.println("received message: " + message);
+        System.out.println(consoleClientUtil.jsonParser(message));
     }
+
 
     @Override
     public void onMessage(ByteBuffer message) {

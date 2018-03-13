@@ -34,18 +34,28 @@ public class ChatEndpoint {
 
     @OnMessage
     public void onMessage(Session session, Message message) throws IOException, EncodeException {
-        message.setFrom(users.get(session.getId()).getName());
-        chatUtils.sendMessage(message, users.get(session.getId()));
-        if(users.get(session.getId()).getUserToSession()==null && users.get(session.getId()).getRole().equals("client")){
-            chatUtils.tryAssignAgent(users,users.get(session.getId()));
+        switch (MessageTypeAnalyzer.typeOfMessage(message.getContent())) {
+            case ORDINARY_MESSAGE:
+                message.setFrom(users.get(session.getId()).getName());
+                chatUtils.sendMessage(message, users.get(session.getId()));
+                if (users.get(session.getId()).getUserToSession() == null && users.get(session.getId()).getRole().equals("client")) {
+                    chatUtils.tryAssignAgent(users, users.get(session.getId()));
+                }
+                if (users.get(session.getId()).getUserToSession() != null)
+                    chatUtils.sendMessage(message, users.get(users.get(session.getId()).getUserToSession().getId()));
+                else {
+                    message.setFrom("server");
+                    message.setContent("нет собеседника");
+                    chatUtils.sendMessage(message, users.get(session.getId()));
+                }
+                break;
+
+            case LEAVE_MESSAGE:
+
+                break;
         }
-        if(users.get(session.getId()).getUserToSession()!= null)
-            chatUtils.sendMessage(message,users.get(users.get(session.getId()).getUserToSession().getId()));
-        else{
-            message.setFrom("server");
-            message.setContent("нет собеседника");
-            chatUtils.sendMessage(message, users.get(session.getId()));
-        }
+
+
     }
 
     @OnClose

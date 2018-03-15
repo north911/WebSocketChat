@@ -1,9 +1,10 @@
-package clientWeb;
+package clientWeb.MessageCoders;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
+import clientWeb.MessageUtils.Message;
 import com.google.gson.Gson;
 
 public class MessageEncoder implements Encoder.Text<Message> {

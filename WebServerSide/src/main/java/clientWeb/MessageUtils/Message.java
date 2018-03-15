@@ -1,4 +1,4 @@
-package clientWeb;
+package clientWeb.MessageUtils;
 
 public class Message {
     private String from;

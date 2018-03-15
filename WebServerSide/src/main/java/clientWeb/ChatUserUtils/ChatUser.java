@@ -1,4 +1,4 @@
-package clientWeb;
+package clientWeb.ChatUserUtils;
 
 import javax.websocket.Session;
 

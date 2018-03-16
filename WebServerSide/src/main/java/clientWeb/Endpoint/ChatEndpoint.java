@@ -8,6 +8,7 @@ import clientWeb.MessageCoders.MessageEncoder;
 import clientWeb.MessageUtils.MessageTypeAnalyzer;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.HashMap;
 import javax.websocket.EncodeException;
@@ -38,7 +39,7 @@ public class ChatEndpoint {
         message.setFrom(username);
         message.setContent("Connected!");
         chatUtils.sendMessage(message, chatUser);
-        logger.log(Level.INFO,username + " connected to chat");
+        logger.log(Level.INFO, username + " connected to chat");
     }
 
     @OnMessage
@@ -79,13 +80,13 @@ public class ChatEndpoint {
     public void onClose(Session session) throws IOException, EncodeException {
         ChatUser user = users.get(session.getId());
         chatUtils.disconnectUsers(user);
-        logger.log(Level.INFO,user.getName() + " connected to chat");
+        logger.log(Level.INFO, user.getName() + " connected to chat");
         users.remove(session.getId());
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
-        logger.log(Level.INFO,  "error");
+        logger.log(Level.INFO, "error");
     }
 
 }

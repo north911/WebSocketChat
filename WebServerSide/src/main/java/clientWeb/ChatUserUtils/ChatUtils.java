@@ -1,6 +1,5 @@
 package clientWeb.ChatUserUtils;
 
-import clientWeb.ChatUserUtils.ChatUser;
 import clientWeb.MessageUtils.Message;
 
 import javax.websocket.EncodeException;
@@ -10,37 +9,51 @@ import java.util.HashMap;
 
 public class ChatUtils {
 
-    private HashMap<String, ChatUser> users;
+    private HashMap<String, Agent> agents;
+    private HashMap<String, Client> clients;
 
-    public ChatUtils(HashMap<String, ChatUser> users) {
-        this.users = users;
+    public ChatUtils(HashMap<String, Agent> agents,HashMap<String, Client> clients) {
+        this.agents = agents;
+        this.clients = clients;
     }
 
     public ChatUser registreChatUser(String name, String role, Session session) {
-        ChatUser chatUser = new ChatUser();
+
+        ChatUser chatUser;
+
+        switch (TypeUserAnalyzer.typeOfUser(role)) {
+            case CLIENT:
+                Client client = new Client();
+                client.setRole("client");
+                chatUser = client;
+                break;
+            default:
+                Agent agent = new Agent();
+                agent.setRole("agent");
+                agent.setAvailable(true);
+                agent.setFreeSlots(1);
+                agent.setNumberOfSlots(1);
+                chatUser = agent;
+                break;
+        }
+
         chatUser.setName(name);
         chatUser.setSession(session);
-        if ("agent".equals(role)) {
-            chatUser.setAvailable(true);
-            chatUser.setRole("agent");
-        } else {
-            chatUser.setAvailable(false);
-            chatUser.setRole("client");
-        }
+
         return chatUser;
     }
 
-    private ChatUser findAvailableAgent(HashMap<String, ChatUser> users) {
-        for (ChatUser chatUser : users.values()) {
-            if (chatUser.isAvailable() && "agent".equals(chatUser.getRole()))
-                return chatUser;
+    private Agent findAvailableAgent(HashMap<String, Agent> agents) {
+        for (Agent agent : agents.values()) {
+            if (agent.isAvailable())
+                return agent;
         }
         return null;
     }
 
-    public boolean tryAssignAgent(HashMap<String, ChatUser> users, ChatUser chatUser) throws IOException, EncodeException{
+    public boolean tryAssignAgent(HashMap<String, Agent> agents, ChatUser chatUser) throws IOException, EncodeException {
 
-        ChatUser agent = findAvailableAgent(users);
+        Agent agent = findAvailableAgent(agents);
         if (agent != null) {
             agent.setAvailable(false);
             agent.setUserToSession(chatUser.getSession());
@@ -48,10 +61,10 @@ public class ChatUtils {
             Message message = new Message();
             message.setFrom(chatUser.getName());
             message.setContent("connected to the chat");
-            sendMessage(message,agent);
+            sendMessage(message, agent);
             message.setFrom(" ");
             message.setContent("connected");
-            sendMessage(message,chatUser);
+            sendMessage(message, chatUser);
             return true;
         }
         return false;
@@ -62,12 +75,17 @@ public class ChatUtils {
         message.setFrom(chatUser.getName());
         message.setContent("Disconnected!");
         if (chatUser.getUserToSession() != null) {
-            sendMessage(message, users.get(chatUser.getUserToSession().getId()));
-            users.get(chatUser.getUserToSession().getId()).setUserToSession(null);
-            users.get(chatUser.getUserToSession().getId()).setAvailable(true);
+            if("agent".equals(chatUser.getRole())){
+            sendMessage(message, clients.get(chatUser.getUserToSession().getId()));
+            agents.get(chatUser.getSession().getId()).setUserToSession(null);
+            agents.get(chatUser.getSession().getId()).setAvailable(true);}
+            else{
+                sendMessage(message, agents.get(chatUser.getUserToSession().getId()));
+                agents.get(chatUser.getUserToSession().getId()).setUserToSession(null);
+                agents.get(chatUser.getUserToSession().getId()).setAvailable(true);
+            }
         }
         chatUser.setUserToSession(null);
-
     }
 
     public void sendMessage(Message message, ChatUser chatUser) throws IOException, EncodeException {

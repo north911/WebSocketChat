@@ -6,7 +6,6 @@ public class ChatUser {
 
     private String name;
     private String role;
-    private boolean isAvailable;
     private Session session;
     private Session userToSession;
 
@@ -42,11 +41,4 @@ public class ChatUser {
         this.role = role;
     }
 
-    public boolean isAvailable() {
-        return isAvailable;
-    }
-
-    public void setAvailable(boolean available) {
-        isAvailable = available;
-    }
 }

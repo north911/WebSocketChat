@@ -22,7 +22,7 @@ public class ConsoleClientUtil {
             System.out.println("only client or agent");
         }
         try {
-            client = new ConsoleClientEndPoint(new URI("ws://localhost:8080/chat/" + user + "/" + role));
+            client = new ConsoleClientEndPoint(new URI("ws://localhost:8080/" + role + "/chat/" + user + "/"));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -32,13 +32,12 @@ public class ConsoleClientUtil {
     }
 
     public void messageSending(WebSocketClient client) {
-        String message = "";
+        String message;
 
-        // connect to server
         Scanner scanner = new Scanner(System.in);
         while (true) {
             message = scanner.nextLine();
-            if(message.equalsIgnoreCase("/exit")){
+            if (message.equalsIgnoreCase("/exit")) {
                 client.close();
                 break;
             }

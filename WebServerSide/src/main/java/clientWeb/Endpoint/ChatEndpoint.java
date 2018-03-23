@@ -1,7 +1,6 @@
 package clientWeb.Endpoint;
 
-import clientWeb.ChatUserUtils.ChatUser;
-import clientWeb.ChatUserUtils.ChatUtils;
+import clientWeb.ChatUserUtils.*;
 import clientWeb.MessageUtils.Message;
 import clientWeb.MessageCoders.MessageDecoder;
 import clientWeb.MessageCoders.MessageEncoder;
@@ -24,17 +23,24 @@ import javax.websocket.server.ServerEndpoint;
 public class ChatEndpoint {
 
     private Logger logger = Logger.getRootLogger();
-    private Session session;
-    private ChatUser chatUser;
-    private static HashMap<String, ChatUser> users = new HashMap<>();
-    private ChatUtils chatUtils = new ChatUtils(users);
+    private static HashMap<String, Agent> agents = new HashMap<>();
+    private static HashMap<String, Client> clients = new HashMap<>();
+    private ChatUtils chatUtils = new ChatUtils(agents, clients);
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username, @PathParam("userrole") String userrole) throws IOException, EncodeException {
+        ChatUser chatUser;
+        switch (TypeUserAnalyzer.typeOfUser(userrole)) {
+            case CLIENT:
+                chatUser = chatUtils.registreChatUser(username, userrole, session);
+                clients.put(session.getId(), (Client) chatUser);
+                break;
+            default:
+                chatUser = chatUtils.registreChatUser(username, userrole, session);
+                agents.put(session.getId(), (Agent) chatUser);
+                break;
+        }
 
-        this.session = session;
-        chatUser = chatUtils.registreChatUser(username, userrole, session);
-        users.put(session.getId(), chatUser);
         Message message = new Message();
         message.setFrom(username);
         message.setContent("Connected!");
@@ -44,30 +50,41 @@ public class ChatEndpoint {
 
     @OnMessage
     public void onMessage(Session session, Message message) throws IOException, EncodeException {
-        switch (MessageTypeAnalyzer.typeOfMessage(message.getContent())) {
-            case ORDINARY_MESSAGE:
-                message.setFrom(users.get(session.getId()).getName());
-                chatUtils.sendMessage(message, users.get(session.getId()));
-                if (users.get(session.getId()).getUserToSession() == null &&
-                        users.get(session.getId()).getRole().equals("client")) {
-                    chatUtils.tryAssignAgent(users, users.get(session.getId()));
+        switch (MessageTypeAnalyzer.typeOfMessage(message.getContent(), session, clients)) {
+            case CLIENT_MESSAGE:
+                message.setFrom(clients.get(session.getId()).getName());
+                chatUtils.sendMessage(message, clients.get(session.getId()));
+                if (clients.get(session.getId()).getUserToSession() == null) {
+                    chatUtils.tryAssignAgent(agents, clients.get(session.getId()));
                 }
-                if (users.get(session.getId()).getUserToSession() != null)
-                    chatUtils.sendMessage(message, users.get(users.get(session.getId()).getUserToSession().getId()));
+                if (clients.get(session.getId()).getUserToSession() != null)
+                    chatUtils.sendMessage(message, agents.get(clients.get(session.getId()).getUserToSession().getId()));
                 else {
                     message.setFrom("");
                     message.setContent("НЕТ СОБЕСЕДНИКА");
-                    chatUtils.sendMessage(message, users.get(session.getId()));
+                    chatUtils.sendMessage(message, clients.get(session.getId()));
                 }
                 break;
 
+            case AGENT_MESSAGE:
+                message.setFrom(agents.get(session.getId()).getName());
+                chatUtils.sendMessage(message, agents.get(session.getId()));
+                if (agents.get(session.getId()).getUserToSession() != null)
+                    chatUtils.sendMessage(message, clients.get(agents.get(session.getId()).getUserToSession().getId()));
+                else {
+                    message.setFrom("");
+                    message.setContent("НЕТ СОБЕСЕДНИКА");
+                    chatUtils.sendMessage(message, agents.get(session.getId()));
+                }
+                break;
+
+
             case LEAVE_MESSAGE:
                 message.setFrom("");
-                if (users.get(session.getId()).getUserToSession() != null &&
-                        users.get(session.getId()).getRole().equals("client")) {
+                if (clients.get(session.getId()).getUserToSession() != null) {
                     message.setContent("disconnected");
-                    chatUtils.sendMessage(message, users.get(session.getId()));
-                    chatUtils.disconnectUsers(users.get(session.getId()));
+                    chatUtils.sendMessage(message, clients.get(session.getId()));
+                    chatUtils.disconnectUsers(clients.get(session.getId()));
                 }
 
                 break;
@@ -78,10 +95,20 @@ public class ChatEndpoint {
 
     @OnClose
     public void onClose(Session session) throws IOException, EncodeException {
-        ChatUser user = users.get(session.getId());
+
+        ChatUser user;
+        if(clients.containsKey(session.getId())){
+        user = clients.get(session.getId());
         chatUtils.disconnectUsers(user);
-        logger.log(Level.INFO, user.getName() + " connected to chat");
-        users.remove(session.getId());
+        clients.remove(session.getId());}
+        else
+        {
+            user = agents.get(session.getId());
+            chatUtils.disconnectUsers(user);
+            agents.remove(session.getId());
+
+        }
+        logger.log(Level.INFO, user.getName() + " disconnected from chat");
     }
 
     @OnError

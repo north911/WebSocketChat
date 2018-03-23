@@ -88,6 +88,12 @@ public class ChatEndpoint {
                 }
 
                 break;
+
+            case AGENT_SLOTS_MESSAGE:
+                String arr[] = message.getContent().split(" ", 2);
+                agents.get(session.getId()).setNumberOfSlots(Integer.parseInt(arr[1]));
+                agents.get(session.getId()).setFreeSlots(Integer.parseInt(arr[1]));
+                break;
         }
 
 

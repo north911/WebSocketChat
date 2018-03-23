@@ -45,7 +45,7 @@ public class ChatUtils {
 
     private Agent findAvailableAgent(HashMap<String, Agent> agents) {
         for (Agent agent : agents.values()) {
-            if (agent.isAvailable())
+            if (agent.getFreeSlots() > 0)
                 return agent;
         }
         return null;
@@ -55,7 +55,7 @@ public class ChatUtils {
 
         Agent agent = findAvailableAgent(agents);
         if (agent != null) {
-            agent.setAvailable(false);
+            agent.setFreeSlots(agent.getFreeSlots() - 1);
             agent.setUserToSession(chatUser.getSession());
             chatUser.setUserToSession(agent.getSession());
             Message message = new Message();
@@ -81,7 +81,8 @@ public class ChatUtils {
             } else {
                 sendMessage(message, agents.get(chatUser.getUserToSession().getId()));
                 agents.get(chatUser.getUserToSession().getId()).setUserToSession(null);
-                agents.get(chatUser.getUserToSession().getId()).setAvailable(true);
+                agents.get(chatUser.getUserToSession().getId()).setFreeSlots
+                        (agents.get(chatUser.getUserToSession().getId()).getFreeSlots() + 1);
             }
         }
         chatUser.setUserToSession(null);

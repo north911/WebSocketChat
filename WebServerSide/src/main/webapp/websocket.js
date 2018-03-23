@@ -6,14 +6,25 @@ function connect() {
     var pathname = document.location.pathname;
 
     ws = new WebSocket("ws://" + host + pathname + "chat/" + username + "/");
+    var millisecondsToWait = 100;
+    setTimeout(function() {
+        sendSlots();
+    }, millisecondsToWait);
     ws.onmessage = function (event) {
         var log = document.getElementById("log");
-
         var message = JSON.parse(event.data);
         log.innerHTML += message.from + " : " + message.content + "\n";
         document.getElementById("username").disabled = true;
         document.getElementById("connectBtn").disabled = true;
     };
+}
+
+function sendSlots() {
+    var content =  document.getElementById("slots").value;
+    var json= JSON.stringify({
+        "content": content
+    });
+    ws.send(json);
 }
 
 function leave() {

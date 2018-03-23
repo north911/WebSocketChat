@@ -97,12 +97,11 @@ public class ChatEndpoint {
     public void onClose(Session session) throws IOException, EncodeException {
 
         ChatUser user;
-        if(clients.containsKey(session.getId())){
-        user = clients.get(session.getId());
-        chatUtils.disconnectUsers(user);
-        clients.remove(session.getId());}
-        else
-        {
+        if (clients.containsKey(session.getId())) {
+            user = clients.get(session.getId());
+            chatUtils.disconnectUsers(user);
+            clients.remove(session.getId());
+        } else {
             user = agents.get(session.getId());
             chatUtils.disconnectUsers(user);
             agents.remove(session.getId());

@@ -12,7 +12,7 @@ public class ChatUtils {
     private HashMap<String, Agent> agents;
     private HashMap<String, Client> clients;
 
-    public ChatUtils(HashMap<String, Agent> agents,HashMap<String, Client> clients) {
+    public ChatUtils(HashMap<String, Agent> agents, HashMap<String, Client> clients) {
         this.agents = agents;
         this.clients = clients;
     }
@@ -75,11 +75,10 @@ public class ChatUtils {
         message.setFrom(chatUser.getName());
         message.setContent("Disconnected!");
         if (chatUser.getUserToSession() != null) {
-            if("agent".equals(chatUser.getRole())){
-            sendMessage(message, clients.get(chatUser.getUserToSession().getId()));
-            agents.get(chatUser.getSession().getId()).setUserToSession(null);
-            agents.get(chatUser.getSession().getId()).setAvailable(true);}
-            else{
+            if ("agent".equals(chatUser.getRole())) {
+                sendMessage(message, clients.get(chatUser.getUserToSession().getId()));
+                clients.get(chatUser.getUserToSession().getId()).setUserToSession(null);
+            } else {
                 sendMessage(message, agents.get(chatUser.getUserToSession().getId()));
                 agents.get(chatUser.getUserToSession().getId()).setUserToSession(null);
                 agents.get(chatUser.getUserToSession().getId()).setAvailable(true);

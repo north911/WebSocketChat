@@ -55,7 +55,7 @@ public class ChatUtils {
         Agent agent = findAvailableAgent(agents);
         if (agent != null) {
             agent.setFreeSlots(agent.getFreeSlots() - 1);
-            agent.setUserToSession(chatUser.getSession());
+            //agent.setUserToSession(chatUser.getSession());
             agent.getInterlocutors().put(chatUser.getName(),chatUser.getSession());
             chatUser.setUserToSession(agent.getSession());
             Message message = new Message();
@@ -90,6 +90,5 @@ public class ChatUtils {
 
     public void sendMessage(Message message, ChatUser chatUser) throws IOException, EncodeException {
         chatUser.getSession().getBasicRemote().sendObject(message);
-
     }
 }

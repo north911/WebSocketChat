@@ -68,10 +68,11 @@ public class ChatEndpoint {
 
             case AGENT_MESSAGE:
                 message.setFrom(agents.get(session.getId()).getName());
-                chatUtils.sendMessage(message, agents.get(session.getId()));
-                if (agents.get(session.getId()).getUserToSession() != null)
-                    chatUtils.sendMessage(message, clients.get(agents.get(session.getId()).getUserToSession().getId()));
-                else {
+                //chatUtils.sendMessage(message, agents.get(session.getId()));
+                if (agents.get(session.getId()).getFreeSlots() != agents.get(session.getId()).getNumberOfSlots()) {
+                    String id = agents.get(session.getId()).getInterlocutors().get(message.getTo()).getId();
+                    chatUtils.sendMessage(message, clients.get(id));
+                } else {
                     message.setFrom("");
                     message.setContent("НЕТ СОБЕСЕДНИКА");
                     chatUtils.sendMessage(message, agents.get(session.getId()));

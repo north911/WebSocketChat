@@ -1,19 +1,27 @@
 package clientWeb.ChatUserUtils;
 
+import javax.websocket.Session;
+import java.util.HashMap;
+
 public class Agent extends ChatUser {
 
     private int numberOfSlots;
 
     private int freeSlots;
 
-    private boolean isAvailable;
+    private HashMap<String, Session> interlocutors;
 
-    public boolean isAvailable() {
-        return isAvailable;
+    public Agent() {
+        interlocutors = new HashMap<>();
     }
 
-    public void setAvailable(boolean available) {
-        isAvailable = available;
+    public HashMap<String, Session> getInterlocutors() {
+
+        return interlocutors;
+    }
+
+    public void setInterlocutors(HashMap<String, Session> interlocutors) {
+        this.interlocutors = interlocutors;
     }
 
     public int getNumberOfSlots() {

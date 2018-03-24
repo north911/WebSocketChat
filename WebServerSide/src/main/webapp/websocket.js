@@ -1,27 +1,37 @@
 var ws;
 
-function connect() {
+
+function connectAgent() {
+    let usersMap = new Map();
+
     var username = document.getElementById("username").value;
     var host = document.location.host;
     var pathname = document.location.pathname;
 
     ws = new WebSocket("ws://" + host + pathname + "chat/" + username + "/");
     var millisecondsToWait = 100;
-    setTimeout(function() {
+    setTimeout(function () {
         sendSlots();
     }, millisecondsToWait);
+    document.getElementById("username").disabled = true;
+    document.getElementById("connectBtn").disabled = true;
+    usersMap.set(username, "");
+
     ws.onmessage = function (event) {
-        var log = document.getElementById("log");
         var message = JSON.parse(event.data);
+        if (!usersMap.has(message.from)) {
+            usersMap.set(message.from, message.from);
+            createNewTab(message.from + "");
+        }
+        var log = document.getElementById(message.from + "");
         log.innerHTML += message.from + " : " + message.content + "\n";
-        document.getElementById("username").disabled = true;
-        document.getElementById("connectBtn").disabled = true;
+
     };
 }
 
 function sendSlots() {
-    var content =  document.getElementById("slots").value;
-    var json= JSON.stringify({
+    var content = document.getElementById("slots").value;
+    var json = JSON.stringify({
         "content": content
     });
     ws.send(json);
@@ -49,16 +59,16 @@ function createNewTab(name) {
     var htmlcode = " <div class=\"panel panel-default\">\n" +
         " <div class=\"panel-heading\">\n" +
         " <h4 class=\"panel-title\">\n" +
-        " <a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#collapseTwo\"\n" +
+        " <a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#collapse"+name+"\"\n" +
         " class=\"collapsed\" aria-expanded=\"false\">" + name + " </a>\n" +
         " </h4>\n" +
         " </div>\n" +
-        " <div id=\"collapseTwo\" class=\"panel-collapse collapse\" aria-expanded=\"false\"\n" +
+        " <div id=\"collapse"+name+"\" class=\"panel-collapse collapse\" aria-expanded=\"false\"\n" +
         " style=\"height: 0px;\">\n" +
         " <div class=\"panel-body\">\n" +
         "   <div class=\"row\" style=\"padding-top: 20px\">\n" +
         "                                            <div class=\"col-lg-5\">\n" +
-        "                                                <textarea class=\"form-control\" rows=\"15\" id=\"log\"></textarea>\n" +
+        "                                                <textarea class=\"form-control\" rows=\"15\" id=\"" + name + "\"></textarea>\n" +
         "                                            </div>\n" +
         "                                            <!-- /.col-lg-12 -->\n" +
         "                                        </div>\n" +
@@ -81,4 +91,23 @@ function createNewTab(name) {
         " </div>";
 
     panel.append(htmlcode);
+}
+
+function connectClient() {
+    var username = document.getElementById("username").value;
+    var host = document.location.host;
+    var pathname = document.location.pathname;
+
+    ws = new WebSocket("ws://" + host + pathname + "chat/" + username + "/");
+    var millisecondsToWait = 100;
+    setTimeout(function () {
+        sendSlots();
+    }, millisecondsToWait);
+    ws.onmessage = function (event) {
+        var log = document.getElementById("log");
+        var message = JSON.parse(event.data);
+        log.innerHTML += message.from + " : " + message.content + "\n";
+        document.getElementById("username").disabled = true;
+        document.getElementById("connectBtn").disabled = true;
+    };
 }

@@ -3,6 +3,7 @@ package clientWeb.MessageUtils;
 import java.util.Objects;
 
 public class Message {
+
     private String from;
     private String to;
     private String content;

@@ -30,7 +30,6 @@ public class ChatUtils {
             default:
                 Agent agent = new Agent();
                 agent.setRole("agent");
-                agent.setAvailable(true);
                 agent.setFreeSlots(1);
                 agent.setNumberOfSlots(1);
                 chatUser = agent;
@@ -57,6 +56,7 @@ public class ChatUtils {
         if (agent != null) {
             agent.setFreeSlots(agent.getFreeSlots() - 1);
             agent.setUserToSession(chatUser.getSession());
+            agent.getInterlocutors().put(chatUser.getName(),chatUser.getSession());
             chatUser.setUserToSession(agent.getSession());
             Message message = new Message();
             message.setFrom(chatUser.getName());

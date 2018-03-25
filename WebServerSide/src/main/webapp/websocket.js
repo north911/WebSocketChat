@@ -24,8 +24,10 @@ function connectAgent() {
             usersMap.set(message.from, message.from);
             createNewTab(message.from + "");
         }
-        if (message.content === "Disconnected!") {
 
+        if ("Disconnected!" == message.content) {
+            usersMap.delete(message.from);
+            removeTab("" + message.from);
         }
         var log = document.getElementById("ta" + message.from);
         log.innerHTML += message.from + " : " + message.content + "\n";
@@ -51,10 +53,14 @@ function leave() {
 
 function sendA(to) {
     var content = document.getElementById("msg" + to).value;
+    var username = document.getElementById("username").value;
     var json = JSON.stringify({
         "to": to + "",
         "content": content
     });
+    var log = document.getElementById("ta" + to);
+    log.innerHTML += username + " : " + content + "\n";
+
     ws.send(json);
 }
 
@@ -68,9 +74,9 @@ function send() {
 
 function createNewTab(name) {
 
-    var nm = "\'"+name + "\'";
+    var nm = "\'" + name + "\'";
     panel = $("#accordion");
-    var htmlcode = " <div class=\"panel panel-default\">\n" +
+    var htmlcode = " <div class=\"panel panel-default\" id=\'pandef" + name + "\'" + ">\n" +
         " <div class=\"panel-heading\">\n" +
         " <h4 class=\"panel-title\">\n" +
         " <a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#collapse" + name + "\"\n" +
@@ -91,7 +97,7 @@ function createNewTab(name) {
         "                                                <div class=\"form-group input-group\">\n" +
         "                                                    <input type=\"text\" class=\"form-control\" id=\"msg" + name + "" + "\">\n" +
         "                                                    <span class=\"input-group-btn\">\n" +
-        "                                                <button class=\"btn btn-default\" type=\"button\" onclick=\"sendA("+ nm +");\"><i\n" +
+        "                                                <button class=\"btn btn-default\" type=\"button\" onclick=\"sendA(" + nm + ");\"><i\n" +
         "                                                        class=\"fa fa-send\"></i>\n" +
         "                                                </button>\n" +
         "                                            </span>\n" +
@@ -108,8 +114,9 @@ function createNewTab(name) {
 }
 
 function removeTab(name) {
-    panel = $("#accordion");
-
+    var panel1 = document.getElementById("accordion");
+    var child = document.getElementById("pandef" + name);
+    panel1.removeChild(child);
 }
 
 function connectClient() {

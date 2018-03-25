@@ -83,7 +83,7 @@ public class ChatEndpoint {
             case LEAVE_MESSAGE:
                 message.setFrom("");
                 if (clients.get(session.getId()).getUserToSession() != null) {
-                    message.setContent("disconnected");
+                    message.setContent("Disconnected!");
                     chatUtils.sendMessage(message, clients.get(session.getId()));
                     chatUtils.disconnectUsers(clients.get(session.getId()));
                 }
